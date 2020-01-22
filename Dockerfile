@@ -1,24 +1,14 @@
-FROM debian:stretch-slim
+FROM debian:latest
 
-RUN apt update && \ 
-	export DEBIAN_FRONTEND=noninteractive && \
-	apt-get install -y mariadb-server && \
-	apt-get install -y mariadb-client 
-	
-COPY 50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
-COPY mariadb /etc/pam.d/mariadb
+RUN apt update && \
+    apt install -y apache2 php7.0 libapache2-mod-php7.0 && \
+    rm /var/www/html/index.html && \
+    useradd --shell /bin/bash -d /home/test -p user1 user1 && \
+    mkdir /home/user1 && \
+    chown -R user1:user1 /home/user1 
 
-ENTRYPOINT	usermod -a -G shadow mysql && \
-		mysql && \
-		CREATE USER 'user5'@'localhost' IDENTIFIED by 'user5'; && \
-		CREATE DATABASE user5_db; && \
-		GRANT ALL PRIVILEGES ON user5_db.* TO user5 IDENTIFIED VIA pam;
+COPY index.php /var/www/html/
 
-EXPOSE 3306
+EXPOSE 80
 
-COPY entrypoint.sh /bin/entrypoint.sh
-RUN chmod +x /bin/entrypoint.sh
-
-ENTRYPOINT ["/bin/entrypoint.sh"]
-
-CMD ["mariadb","-D"]
+CMD ["/usr/sbin/apachectl", "-D", "FOREGROUND"]
