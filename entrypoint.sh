@@ -1,11 +1,15 @@
 #!/bin/sh
 
-if [ -n "$FTP_USERNAME" -a -n "$FTP_PASSWORD" ]; then
-        CRYPTED_PASSWORD=$(perl -e 'print crypt($ARGV[0], "password")' $FTP_PASSWORD)
-        mkdir /home/$FTP_USERNAME
-        useradd --shell /bin/sh -d /home/$FTP_USERNAME --password $CRYPTED_PASSWORD $FTP_USERNAME
-        chown -R $FTP_USERNAME:$FTP_USERNAME /home/$FTP_USERNAME
-fi
+echo "sql:$SQL_PASS" | chpasswd
 
-exec "$@"
+mysqld_safe &
+sleep 5
+echo "update mysql.user set plugin = 'mysql_native_password' where user='root';$
+echo "update mysql.user set password=PASSWORD('$DB_PASS') where user='root';" |$
+echo "flush privileges;" | mysql -u root
+
+apache2ctl start
+
+/usr/sbin/sshd -D
+
 

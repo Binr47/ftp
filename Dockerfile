@@ -1,18 +1,24 @@
-FROM	debian:jessie
+FROM debian:stretch-slim
 
-ENV	DEBIAN_FRONTED noninteractive
+RUN apt update && \ 
+	export DEBIAN_FRONTEND=noninteractive && \
+	apt-get install -y mariadb-server && \
+	apt-get install -y mariadb-client 
+	
+COPY 50-server.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+COPY mariadb /etc/pam.d/mariadb
 
-RUN	apt-get update -y && \
-	apt-get install -y proftpd
+ENTRYPOINT	usermod -a -G shadow mysql && \
+		mysql && \
+		CREATE USER 'user5'@'localhost' IDENTIFIED by 'user5'; && \
+		CREATE DATABASE user5_db; && \
+		GRANT ALL PRIVILEGES ON user5_db.* TO user5 IDENTIFIED VIA pam;
 
+EXPOSE 3306
 
-RUN sed -i "s/# DefaultRoot/DefaultRoot/" /etc/proftpd/proftpd.conf
+COPY entrypoint.sh /bin/entrypoint.sh
+RUN chmod +x /bin/entrypoint.sh
 
-RUN useradd -ms /bin/bash user1
-Run echo "user1:user1" | chpasswd
+ENTRYPOINT ["/bin/entrypoint.sh"]
 
-VOLUME ["/home/test1"]
-
-EXPOSE 20 21
-
-CMD ["proftpd", "--nodaemon"]
+CMD ["mariadb","-D"]

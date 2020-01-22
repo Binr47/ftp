@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+
+  sql01:
+    build: sql
+    ports:
+      - "3306:33"
+    environment:
+      - SQL_PASS=sql01
+      - SQL_PASS=sql01
+
+  sql02:
+    build: sql
+    ports:
+      - "3307:33"
+    environment:
+      - SQL_PASS=test02
+      - SQL_PASS=test02
+
